@@ -1,80 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react'
 import wordCorpus from './words'
-import { Keyboard } from './components/index'
-import { Alert, Badge, Button, ButtonGroup, Col, Container, Form, Row } from 'react-bootstrap'
+import { Keyboard, AllGuesses, Controls } from './components/index'
+import { Alert, Badge, Button, Col, Container, Form, Row } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-const AllGuesses = ({ words, results, className }) => {
-  return (
-    <div className = {className}>
-      {words.map((word, idx) => <WordGuess key = {idx} letters = {word} results = {results[idx]} />)}
-    </div>
-  )
-}
-const WordGuess = ({ letters, results }) => {
-  return (
-    <div className="d-flex flex-row bd-highlight mb-0 justify-content-center align-items-center">
-      {letters.map((letter, idx) => <Letter key={idx} letter = {letter} result = {results[idx]} />)}
-    </div>
-  )
-}
-const Letter = ({ letter, result }) => {
-  let bgClass
-  if (result === 3) {
-    bgClass = 'bg-success'
-  }
-  else if (result === 2) {
-    bgClass = 'bg-warning'
-  }
-  else if (result === 1) {
-    bgClass = 'bg-dark'
-  }
-  return (
-    <div className={`d-flex align-items-center justify-content-center m-2 rounded border border-primary ${bgClass}`} style = {{width: '4rem', height: '4rem'}}>
-      <h2 className='text-white text-center mb-0'>
-        {letter}
-      </h2>
-    </div>
-  )
-}
-
-const Controls = ({ text, value, enabled, onClickUp, onClickDown }) => {
-  return (
-    <div className='d-block text-center py-2' >
-      <h4 className='text-white d-inline-block mx-3'>
-        {text} <Badge>{value}</Badge>
-      </h4>
-      <ButtonGroup vertical>
-        <Button variant = 'outline-primary' onClick={onClickUp} disabled={enabled === true ? false : true}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-up" viewBox="0 0 16 16">
-            <path fillRule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
-          </svg>
-        </Button>
-        <Button variant = 'outline-primary' onClick={onClickDown} disabled={enabled === true ? false : true}>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down" viewBox="0 0 16 16">
-            <path fillRule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
-          </svg>
-        </Button>
-      </ButtonGroup>
-    </div>
-  )
-}
 const App = () => {
+
+  const resultKeys = {
+    SUCCESS: 3,
+    WRONGPOS: 2,
+    WRONG: 1,
+    NONE: 0
+  }
   const alertTime = 2000
   const [numGuesses, setNumGuesses] = useState(7)
   const [wordLength, setWordLength] = useState(5)
-  const [words, setWords] = useState(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))  
-  const [results, setResults] = useState(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => 1)))
+  const [words, setWords] = useState(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
+  // Results for the letters in typed
+  const [results, setResults] = useState(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
   const [alertMessage, setAlertMessage] = useState(null)
   const [controlsToggle, setControlsToggle] = useState(true)
+  const [startState, setStartState] = useState(false)
+  const [numWins, setNumWins] = useState(0)
+  const [numLosses, setNumLosses] = useState(0)
 
+  const wordsRef = useRef({})
+  wordsRef.current = words
   const resultsRef = useRef({})
   resultsRef.current = results
-  const startState = useRef(false)
-  const currentGuess = useRef(0)
-  const keyboardStates = useRef(['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')).map(row => row.map(key => ({display: key, state: 1}))))
+ 
+  // const currentGuess = useRef(0)
+  const keyboardStates = useRef(['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')).map(row => row.map(key => ({display: key, state: resultKeys.NONE}))))
 
-  let correctWord 
+  let correctWord
+  let currentGuess
   let currentPosition // Number representing current position in array
   let availableWords // List of available words for selected length
   let endOfWord // Whether end of word has been reached
@@ -94,43 +53,64 @@ const App = () => {
     return indices
   }
   const updateKeyboard = (currentResult, newResult) => {
-    return newResult === 3 ? 3 
-         : newResult === 2 && currentResult !== 3 ? 2
+    return newResult === resultKeys.SUCCESS ? resultKeys.SUCCESS 
+         : newResult === resultKeys.WRONGPOS && currentResult !== resultKeys.SUCCESS ? resultKeys.WRONGPOS
+         : newResult === resultKeys.WRONG && currentResult !== resultKeys.SUCCESS && currentResult !== resultKeys.WRONGPOS ? 1
          : currentResult
   }
+
+  const onWin = () => {
+    window.removeEventListener('keydown', onKeyDown)
+    setNumWins(numWins + 1)
+    setStartState(false)
+    setControlsToggle(true)
+    
+  }
+
+  const onLoss = () => {
+    window.removeEventListener('keydown', onKeyDown)
+    setNumLosses(numLosses + 1)
+    setStartState(false)
+    setControlsToggle(true)
+
+  }
+  const resetBoard = (numGuesses, wordLength) => {
+    setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
+    setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
+
+  }
   const submitGuess = (word) => {
-    console.log('bg', word)
     console.log('correct', correctWord)
     const lowerCaseWord = word.toLowerCase()
     if (availableWords.includes(lowerCaseWord)) {
       
-      let result = []
+      let newResult = []
       const correctWordSplit = correctWord.split('')
       lowerCaseWord.split('').forEach((letter, index) => {
         let currentResult
         if (correctWordSplit.includes(letter)) {
           if (getAllIndices(correctWordSplit, letter).includes(index)) {
-            currentResult = 3
+            currentResult = resultKeys.SUCCESS
           } 
           else if (getAllIndices(correctWordSplit, letter).length >= getAllIndices(lowerCaseWord.split(''), letter).length) {
-            currentResult = 2
+            currentResult = resultKeys.WRONGPOS
           }
           // else if (getAllIndices(correctWordSplit, letter).length >= 0 && getAllIndices(lowerCaseWord.split(''), letter).length >= 0 && )
           else {
-            currentResult = 1
+            currentResult = resultKeys.WRONG
           }
         }
         else {
-          currentResult = 1
+          currentResult = resultKeys.WRONG
         }
-        result.push(currentResult)
+        newResult.push(currentResult)
         keyboardStates.current = keyboardStates.current.map(row => (
           row.map(key => (
             key.display === letter.toUpperCase() ? {display: key.display, state: updateKeyboard(key.state, currentResult)} : key
           ))
         ))
       })
-      return result
+      return newResult
     }
     else {
       return null
@@ -139,23 +119,28 @@ const App = () => {
 
   const onEnterPress = (words, row) => {
     const outcome = submitGuess(words[row - 1].join(''))
-
+    console.log(currentGuess)
     if (outcome !== null) {
-      // Create new 2D array for results
-
       const tempResults = resultsRef.current.map((result, index) => index === row - 1 ? outcome : result)
       // Update state for results
       setResults(tempResults.map(result => [...result]))
       // New word is reached
       endOfWord = false
-      currentGuess.current++
+      currentGuess++
+      // Create new 2D array for results
+      if (outcome.every(val => val === resultKeys.SUCCESS)) {
+        onWin()
+      }
+      else if (currentGuess === numGuesses) {
+        onLoss()
+      }
     }
     else {
       displayAlert(`Word '${words[row - 1].join('')}' does not exist.`, alertTime)
     }
   }
 
-  const onLetterPress = (key, row, col, wordLength) => {
+  const onLetterPress = (words, key, row, col, wordLength) => {
     if (col === wordLength - 1) {
       endOfWord = true
     } 
@@ -166,7 +151,7 @@ const App = () => {
   }
 
   const onBackspacePress = (words, col) => {
-    console.log(words)
+    
     if (col === 0) {
       endOfWord = false
     }
@@ -178,19 +163,21 @@ const App = () => {
 
   const onKeyDown = (event) => {
 
+    console.log(wordsRef.current)
+
     const key = event.key
     const row = Math.floor(currentPosition / wordLength)
     const col = currentPosition % wordLength
     
     // If reached the beginning of next row
     if (key === 'Enter' && endOfWord === true) {
-      onEnterPress(words, row)
+      onEnterPress(wordsRef.current, row)
     }
     else if (/^[a-z]$/i.test(key) === true && (endOfWord === false || endOfWord === undefined)) {
-      onLetterPress(key, row, col, wordLength)
+      onLetterPress(wordsRef.current, key, row, col, wordLength)
     }
-    else if (key === 'Backspace' && currentPosition > currentGuess.current * wordLength) {
-      onBackspacePress(words, col)
+    else if (key === 'Backspace' && currentPosition > currentGuess * wordLength) {
+      onBackspacePress(wordsRef.current, col)
     }
   }
 
@@ -204,24 +191,30 @@ const App = () => {
   const handleLengthIncrease = (event) => {
     const newWordLength = wordLength + 1
     setWordLength(newWordLength)
-    setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(newWordLength).split('')))
-    setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(newWordLength).map(val => 1))))
+    resetBoard(numGuesses, newWordLength)
   }
   const handleLengthDecrease = (event) => {
     const newWordLength = wordLength - 1
     setWordLength(newWordLength)
-    setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(newWordLength).split('')))
-    setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(newWordLength).map(val => 1))))
+    resetBoard(numGuesses, newWordLength)
   }
   
   const clickStart = (event) => {
-    if (startState.current === false) {
+    if (startState === false) {
+      resetBoard(numGuesses, wordLength)
+
       availableWords = wordCorpus.filter(word => word.length === wordLength)
-      startState.current = true
       correctWord = availableWords[Math.floor(Math.random() * availableWords.length)]
       currentPosition = 0
-      setControlsToggle(false)
+      currentGuess = 0
+      
+      keyboardStates.current = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')).map(row => row.map(key => ({display: key, state: resultKeys.NONE})))
+      
       window.addEventListener('keydown', onKeyDown)
+
+      setStartState(true)
+      event.target.blur() // Remove focus on button after disabling
+      setControlsToggle(false)
     }
   }
 
@@ -247,8 +240,8 @@ const App = () => {
             onClickDown = {handleLengthDecrease}
           />
           <div className='d-inline-block'>
-          <Button size='lg' variant='primary' onClick={clickStart}>Start</Button>{' '}
-          <Button size='lg' variant='danger'>Retry</Button>
+            <Button size='lg' variant='primary' disabled = {startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
+            <Button size='lg' variant='danger'>Retry</Button>
           </div>
         </Col>
         <Col xs = {12} md = {{span: 6, offset: 3}}>
@@ -256,7 +249,14 @@ const App = () => {
           <AllGuesses words = {words} results = {results} className = 'mb-3'/>
           <Keyboard keyboardStates={keyboardStates.current}/>
         </Col>
-        <Col md = {3}></Col>
+        <Col 
+          className = "d-md-flex d-none flex-column justify-content-center align-items-center fixed-top text-white"
+          style={{height: '100vh'}} 
+          md = {{span: 3, offset: 9}}
+        >
+          <h4>Wins: <Badge>{numWins}</Badge></h4>
+          <h4>Losses: <Badge>{numLosses}</Badge></h4>
+        </Col>
       </Row>
       <Row>
         
