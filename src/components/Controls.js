@@ -1,19 +1,19 @@
 import React from "react"
 import { Button, ButtonGroup, Badge } from "react-bootstrap"
 
-const Controls = ({ text, value, enabled, onClickUp, onClickDown }) => {
+const Controls = ({ text, value, minValue, maxValue, enabled, onClickUp, onClickDown }) => {
   return (
     <div className='d-block text-center py-2' >
       <h4 className='text-white d-inline-block mx-3'>
         {text} <Badge>{value}</Badge>
       </h4>
       <ButtonGroup vertical>
-        <Button variant = 'outline-primary' onClick={onClickUp} disabled={enabled === true ? false : true}>
+        <Button variant = 'outline-primary' onClick={onClickUp} disabled={enabled === true && value < maxValue ? false : true}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-up" viewBox="0 0 16 16">
             <path fillRule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
           </svg>
         </Button>
-        <Button variant = 'outline-primary' onClick={onClickDown} disabled={enabled === true ? false : true}>
+        <Button variant = 'outline-primary' onClick={onClickDown} disabled={enabled === true && value > minValue ? false : true}>
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-arrow-down" viewBox="0 0 16 16">
             <path fillRule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
           </svg>

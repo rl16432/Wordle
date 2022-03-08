@@ -13,6 +13,10 @@ const App = () => {
     NONE: 0
   }
   const alertTime = 2000
+  const minGuesses = 3
+  const maxGuesses = Infinity
+  const minLength = 3
+  const maxLength = 10
   const [numGuesses, setNumGuesses] = useState(7)
   const [wordLength, setWordLength] = useState(5)
   const [words, setWords] = useState(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
@@ -75,34 +79,46 @@ const App = () => {
 
   }
   const resetBoard = (numGuesses, wordLength) => {
-    setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
-    setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
+    if (numGuesses !== null)
+      setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
+    if (wordLength !== null)
+      setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
 
   }
   const submitGuess = (word) => {
     console.log('correct', correctWord)
+
     const lowerCaseWord = word.toLowerCase()
-    if (availableWords.includes(lowerCaseWord)) {
-      
+    if (availableWords.includes(lowerCaseWord)) { 
       let newResult = []
       const correctWordSplit = correctWord.split('')
-      lowerCaseWord.split('').forEach((letter, index) => {
+      const userWordSplit = lowerCaseWord.split('')
+      let userWordTemp = userWordSplit
+
+      userWordSplit.forEach((letter, index) => {
         let currentResult
-        if (correctWordSplit.includes(letter)) {
-          if (getAllIndices(correctWordSplit, letter).includes(index)) {
-            currentResult = resultKeys.SUCCESS
-          } 
-          else if (getAllIndices(correctWordSplit, letter).length >= getAllIndices(lowerCaseWord.split(''), letter).length) {
-            currentResult = resultKeys.WRONGPOS
-          }
-          // else if (getAllIndices(correctWordSplit, letter).length >= 0 && getAllIndices(lowerCaseWord.split(''), letter).length >= 0 && )
-          else {
-            currentResult = resultKeys.WRONG
-          }
-        }
-        else {
+        const letterPosition = correctWordSplit.indexOf(letter)
+
+        if (letterPosition === -1) {
           currentResult = resultKeys.WRONG
         }
+        else {
+          if (userWordSplit[index] === correctWordSplit[index]) {
+            currentResult = resultKeys.SUCCESS
+            correctWordSplit[letterPosition] = "#"
+          } 
+          else if (
+            getAllIndices(userWordSplit, letter).length !== getAllIndices(correctWordSplit, letter) &&
+            getAllIndices(userWordSplit, letter).includes(letterPosition)) {
+            currentResult = resultKeys.WRONG
+          }
+          else {
+            currentResult = resultKeys.WRONGPOS
+            correctWordSplit[letterPosition] = "#"
+          }
+          userWordTemp[index] = "#"
+        }
+
         newResult.push(currentResult)
         keyboardStates.current = keyboardStates.current.map(row => (
           row.map(key => (
@@ -181,20 +197,14 @@ const App = () => {
     }
   }
 
-  const handleGuessIncrease = (event) => {
-    setNumGuesses(numGuesses + 1)
-  }
-  const handleGuessDecrease = (event) => {
-    setNumGuesses(numGuesses - 1)
+  const handleGuessChange = (changeValue) => (event) => {
+    const newNumGuesses = numGuesses + changeValue
+    setNumGuesses(newNumGuesses)
+    resetBoard(newNumGuesses, wordLength)
   }
 
-  const handleLengthIncrease = (event) => {
-    const newWordLength = wordLength + 1
-    setWordLength(newWordLength)
-    resetBoard(numGuesses, newWordLength)
-  }
-  const handleLengthDecrease = (event) => {
-    const newWordLength = wordLength - 1
+  const handleLengthChange = (changeValue) => (event) => {
+    const newWordLength = wordLength + changeValue
     setWordLength(newWordLength)
     resetBoard(numGuesses, newWordLength)
   }
@@ -228,16 +238,20 @@ const App = () => {
           <Controls 
             text = 'Number of guesses' 
             value = {numGuesses}
+            minValue = {minGuesses}
+            maxValue = {maxGuesses}
             enabled = {controlsToggle}
-            onClickUp = {handleGuessIncrease} 
-            onClickDown = {handleGuessDecrease}
+            onClickUp = {handleGuessChange(1)} 
+            onClickDown = {handleGuessChange(-1)}
           />
           <Controls 
             text = 'Word length' 
-            value = {wordLength} 
+            value = {wordLength}
+            minValue = {minLength}
+            maxValue = {maxLength}
             enabled = {controlsToggle}
-            onClickUp = {handleLengthIncrease} 
-            onClickDown = {handleLengthDecrease}
+            onClickUp = {handleLengthChange(1)} 
+            onClickDown = {handleLengthChange(-1)}
           />
           <div className='d-inline-block'>
             <Button size='lg' variant='primary' disabled = {startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
