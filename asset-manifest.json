@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/endless-wordle/static/css/main.1a8a0596.css",
-    "main.js": "/endless-wordle/static/js/main.652a1ff8.js",
-    "index.html": "/endless-wordle/index.html",
-    "main.1a8a0596.css.map": "/endless-wordle/static/css/main.1a8a0596.css.map",
-    "main.652a1ff8.js.map": "/endless-wordle/static/js/main.652a1ff8.js.map"
+    "main.css": "/unlimited-wordle/static/css/main.1a8a0596.css",
+    "main.js": "/unlimited-wordle/static/js/main.652a1ff8.js",
+    "index.html": "/unlimited-wordle/index.html",
+    "main.1a8a0596.css.map": "/unlimited-wordle/static/css/main.1a8a0596.css.map",
+    "main.652a1ff8.js.map": "/unlimited-wordle/static/js/main.652a1ff8.js.map"
   },
   "entrypoints": [
     "static/css/main.1a8a0596.css",
