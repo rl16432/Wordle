@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import { Button } from "react-bootstrap"
 
 const Keyboard = ({ keyboardStates }) => {
-  // const keys = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')) 
 
   const onButtonClick = (letter) => () => {
     window.dispatchEvent(
