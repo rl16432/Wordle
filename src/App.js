@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react'
 import wordCorpus from './words'
-import { Keyboard, AllGuesses, Controls, EndWindow } from './components/index'
-import { Alert, Badge, Button, Col, Container, Row } from 'react-bootstrap'
+import { GameAlert, Controls, AllGuesses, Keyboard, EndWindow } from './components/index'
+import { Alert, Badge, Button, Col, Container, Navbar, Row } from 'react-bootstrap'
 import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
+import Board from './components/Board'
 
 const App = () => {
 
@@ -14,14 +16,17 @@ const App = () => {
   }
 
   // Time which alert is displayed on screen (ms)
-  const alertTime = 2000 
+  const alertTime = 2000
+  let alertCounter = 0;
 
   // Parameters for game controls (min/max word length and min/max number of guesses) 
   const minGuesses = 3
   const maxGuesses = Infinity
   const minLength = 3
   const maxLength = 10
-  
+  // Breakpoint for the controls to be shrunk
+  const breakpoint = "md"
+
   // Current number of guesses
   const [numGuesses, setNumGuesses] = useState(6)
   // Current word length
@@ -47,7 +52,7 @@ const App = () => {
   wordsRef.current = words
   const resultsRef = useRef({})
   resultsRef.current = results
-  
+
   // Array for colors on the keyboard
   const keyboardStates = useRef(
     ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM']
@@ -56,7 +61,7 @@ const App = () => {
         display: key,
         state: resultKeys.NONE
       })))
-    )
+  )
 
   // Current correct word
   const correctWord = useRef()
@@ -70,8 +75,9 @@ const App = () => {
   let endOfWord
 
   // Display alert message 
-  const displayAlert = (alertMessage, timeout) => {
-    setAlertMessage(alertMessage)
+  const displayAlert = (newAlert, timeout) => {
+
+    setAlertMessage(newAlert)
     setTimeout(() => {
       setAlertMessage(null)
     }, timeout)
@@ -81,7 +87,7 @@ const App = () => {
   // whether wrong position, correct position or non-existent) 
   const getAllIndices = (arr, val) => {
     let indices = [], i
-    for (i = 0; i < arr.length; i++) 
+    for (i = 0; i < arr.length; i++)
       if (arr[i] === val)
         indices.push(i)
     return indices
@@ -92,13 +98,18 @@ const App = () => {
     // Inputs:
     // currentResult - The color already displayed on the keyboard
     // newResult - The color of the letter in the most recent input
-    return newResult === resultKeys.SUCCESS ? resultKeys.SUCCESS 
-         : newResult === resultKeys.WRONGPOS && currentResult !== resultKeys.SUCCESS ? resultKeys.WRONGPOS // Don't override if already a 'SUCCESS'
-         : newResult === resultKeys.WRONG && currentResult !== resultKeys.SUCCESS && currentResult !== resultKeys.WRONGPOS ? 1
-         : currentResult
+    return newResult === resultKeys.SUCCESS ? resultKeys.SUCCESS
+      : newResult === resultKeys.WRONGPOS && currentResult !== resultKeys.SUCCESS ? resultKeys.WRONGPOS // Don't override if already a 'SUCCESS'
+        : newResult === resultKeys.WRONG && currentResult !== resultKeys.SUCCESS && currentResult !== resultKeys.WRONGPOS ? 1
+          : currentResult
   }
-  
-  // Reset the board when new game started
+
+  /** 
+   * Reset the board when new game started
+   * 
+   * @param {*} numGuesses Specify the number of guesses the board should have
+   * @param {*} wordLength Specify the length of the words in the game
+   */
   const resetBoard = (numGuesses, wordLength) => {
     if (numGuesses !== null)
       setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
@@ -106,16 +117,23 @@ const App = () => {
       setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
   }
 
-  // Handle user win
+
+  /**
+   * Reset game state when the user wins
+   */
   const onWin = () => {
     // Remove key logger
     window.removeEventListener('keydown', onKeyDown)
     setNumWins(numWins + 1)
     setStartState(false)
+    // The controls for the game options are enabled again
     setControlsToggle(true)
     setEndState("W")
   }
-  // Handle user loss
+
+  /**
+   * Reset game state when the user loses
+   */
   const onLoss = () => {
     window.removeEventListener('keydown', onKeyDown)
     setNumLosses(numLosses + 1)
@@ -124,13 +142,18 @@ const App = () => {
     setEndState("L")
   }
 
-  // Handle when user submits guess
+  /**
+   * When the Enter button is pressed and a guess is submitted
+   * 
+   * @param {*} word The word that the user submits as part of guess
+   * @returns The results of the user's guess (Yellow/Green/Black)
+   */
   const submitGuess = (word) => {
     console.log('correct', correctWord.current)
 
     const lowerCaseWord = word.toLowerCase()
     // Check if user's word is real
-    if (availableWords.includes(lowerCaseWord)) { 
+    if (availableWords.includes(lowerCaseWord)) {
       // Store results/colors to indicate the results of the user's word
       let newResult = []
       // Split into array of characters
@@ -159,14 +182,13 @@ const App = () => {
           // In this case, the letter should be considered wrong
           // If there are 2 'E' in the correct word, but 3 'E' in the user's word, one
           // of them have to be wrong
-          else if (getAllIndices(userWordTemp, letter).length > getAllIndices(correctWordSplit, letter).length) { 
+          else if (getAllIndices(userWordTemp, letter).length > getAllIndices(correctWordSplit, letter).length) {
             currentResult = resultKeys.WRONG
           }
           else {
             currentResult = resultKeys.WRONGPOS
-            // correctWordSplit[letterPosition] = "#"
           }
-          // Replace current letter with # to allow the letter count to reflect the remaining letters
+          // Replace current letter with # to allow the 'getAllIndices' letter count to reflect the remaining letters
           userWordTemp[index] = "#"
         }
         // Add to results array
@@ -174,7 +196,7 @@ const App = () => {
         // Update keyboard states
         keyboardStates.current = keyboardStates.current.map(row => (
           row.map(key => (
-            key.display === letter.toUpperCase() ? {display: key.display, state: updateKeyboard(key.state, currentResult)} : key
+            key.display === letter.toUpperCase() ? { display: key.display, state: updateKeyboard(key.state, currentResult) } : key
           ))
         ))
       })
@@ -182,9 +204,15 @@ const App = () => {
     }
     else {
       return null
-    } 
+    }
   }
 
+  /**
+   * Handles the response when the Enter button is pressed
+   * 
+   * @param {*} words The 2D array which contains the list of user inputted words 
+   * @param {*} row The row which contains the most recent word the user is attempting to 
+   */
   const onEnterPress = (words, row) => {
     const outcome = submitGuess(words[row - 1].join(''))
     console.log(currentGuess)
@@ -209,17 +237,18 @@ const App = () => {
   }
 
   const onLetterPress = (words, key, row, col, wordLength) => {
+    // Determine if the end of the word has been reached
     if (col === wordLength - 1) {
       endOfWord = true
-    } 
-    currentPosition++  
+    }
+    currentPosition++
     const tempWords = [...words]
     tempWords[row][col] = key.toUpperCase()
     setWords(tempWords)
   }
 
   const onBackspacePress = (words, col) => {
-    
+
     if (col === 0) {
       endOfWord = false
     }
@@ -228,13 +257,13 @@ const App = () => {
     tempWords[Math.floor(currentPosition / wordLength)][currentPosition % wordLength] = ' '
     setWords(tempWords)
   }
-  
+
   const onKeyDown = (event) => {
 
     const key = event.key
     const row = Math.floor(currentPosition / wordLength)
     const col = currentPosition % wordLength
-    
+
     // If reached the beginning of next row
     if (key === 'Enter' && endOfWord === true) {
       onEnterPress(wordsRef.current, row)
@@ -258,7 +287,7 @@ const App = () => {
     setWordLength(newWordLength)
     resetBoard(numGuesses, newWordLength)
   }
-  
+
   const clickStart = (event) => {
     if (startState === false) {
       resetBoard(numGuesses, wordLength)
@@ -267,9 +296,9 @@ const App = () => {
       correctWord.current = availableWords[Math.floor(Math.random() * availableWords.length)]
       currentPosition = 0
       currentGuess = 0
-      
-      keyboardStates.current = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')).map(row => row.map(key => ({display: key, state: resultKeys.NONE})))
-      
+
+      keyboardStates.current = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')).map(row => row.map(key => ({ display: key, state: resultKeys.NONE })))
+
       window.addEventListener('keydown', onKeyDown)
 
       setStartState(true)
@@ -279,70 +308,69 @@ const App = () => {
   }
 
   return (
-    // pe-none disables interactions when game is ended
-    <Container fluid className={`bg-dark overflow-auto${endState !== null ? ' pe-none' : ''}`}>
-      {alertMessage !== null 
-        ? <Alert 
-            variant = 'danger'
-            className='position-absolute top-50 start-50' 
-            style={{transform: 'translate(-50%, -50%)', WebkitTransform: 'translate(-50%, -50%)'}}
-          >
-            {alertMessage}
-          </Alert>
-        : null
-      }
-      
-      <div style={{height: '100vh'}}>
-        <EndWindow
-          endStatus = {endState}
-          closeHandle = {() => {setEndState(null)}}
-          correctWord = {correctWord.current}
-          numWins = {numWins}
-          numLosses = {numLosses}
-        />
 
-        <Row className= "h-100 align-items-center">
-        {/* style={{height: '100vh', position:'fixed', top: '50%', bottom:'50%'}} */}
-          
-          <Col className = "d-md-flex d-none flex-column justify-content-center align-items-center fixed-top" style={{height: '100vh'}} md = {3}>
-            <Controls 
-              text = 'Number of guesses' 
-              value = {numGuesses}
-              minValue = {minGuesses}
-              maxValue = {maxGuesses}
-              enabled = {controlsToggle}
-              onClickUp = {handleGuessChange(1)} 
-              onClickDown = {handleGuessChange(-1)}
+    <>
+      {/* Invalid word alert */}
+      <GameAlert alertMessage={alertMessage} />
+
+      {/* Shrunk controls */}
+      <Container fluid className={`sticky-top d-${breakpoint}-none bg-dark border-bottom border-primary`}>
+        <Button variant="outline-primary" className='d-inline-block my-2'>
+          <h1 className='mb-0'><i className="bi bi-list"></i></h1>
+        </Button>
+      </Container>
+
+      <EndWindow
+        endStatus={endState}
+        closeHandle={() => { setEndState(null) }}
+        correctWord={correctWord.current}
+        numWins={numWins}
+        numLosses={numLosses}
+      />
+
+      {/* pe-none disables interactions when game is ended */}
+      <Container fluid className={`bg-dark ${endState !== null ? ' pe-none' : ''}`}>
+
+        <Row className="pt-5 h-100 align-items-center">
+          <Col className={`col-${breakpoint}-3 d-${breakpoint}-flex d-none flex-column justify-content-center align-items-center fixed-top vh-100`}>
+            <Controls
+              text='Number of guesses'
+              value={numGuesses}
+              minValue={minGuesses}
+              maxValue={maxGuesses}
+              enabled={controlsToggle}
+              onClickUp={handleGuessChange(1)}
+              onClickDown={handleGuessChange(-1)}
             />
-            <Controls 
-              text = 'Word length' 
-              value = {wordLength}
-              minValue = {minLength}
-              maxValue = {maxLength}
-              enabled = {controlsToggle}
-              onClickUp = {handleLengthChange(1)} 
-              onClickDown = {handleLengthChange(-1)}
+            <Controls
+              text='Word length'
+              value={wordLength}
+              minValue={minLength}
+              maxValue={maxLength}
+              enabled={controlsToggle}
+              onClickUp={handleLengthChange(1)}
+              onClickDown={handleLengthChange(-1)}
             />
             <div className='d-inline-block'>
-              <Button size='lg' variant='primary' disabled = {startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
-              <Button size='lg' variant='danger'>Retry</Button>
+              <Button size='lg' variant='primary' disabled={startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
+              {/* <Button size='lg' variant='danger'>Retry</Button> */}
             </div>
           </Col>
-          <Col xs = {12} md = {{span: 6, offset: 3}}>
-            <AllGuesses words = {words} results = {results} className = 'mb-3'/>
-            <Keyboard keyboardStates={keyboardStates.current}/>
+          <Col xs={{ span: 10, offset: 1 }} className={`col-${breakpoint}-6 offset-${breakpoint}-3`}>
+            <Board wordLength={wordLength} words={words} allResults={results} />
+            <Keyboard keyboardStates={keyboardStates.current} />
           </Col>
-          <Col 
-            className = "d-md-flex d-none flex-column justify-content-center align-items-center fixed-top text-white"
-            style={{height: '100vh'}} 
-            md = {{span: 3, offset: 9}}
+          <Col
+            className={`col-${breakpoint}-3 offset-${breakpoint}-9 d-${breakpoint}-flex d-none flex-column justify-content-center align-items-center fixed-top text-white`}
+            style={{ height: '100vh' }}
           >
             <h4>Wins: <Badge>{numWins}</Badge></h4>
             <h4>Losses: <Badge>{numLosses}</Badge></h4>
           </Col>
         </Row>
-      </div>
-    </Container>
+
+      </Container>
+    </>
   )
 }
 

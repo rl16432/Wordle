@@ -2,10 +2,12 @@ import Keyboard from "./Keyboard"
 import AllGuesses from "./AllGuesses"
 import Controls from "./Controls"
 import EndWindow from "./EndWindow"
+import GameAlert from "./GameAlert"
 
 export {
-  Keyboard,
+  GameAlert, 
+  Controls,
   AllGuesses,
-  Controls, 
+  Keyboard,
   EndWindow
 }

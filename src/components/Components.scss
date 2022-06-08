@@ -1,0 +1,45 @@
+/* 
+  COMBINED CSS FOR ALL REACT COMPONENTS
+*/
+
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "../../node_modules/bootstrap/scss/functions";
+
+// 2. Include any default variable overrides here
+
+// 3. Include remainder of required Bootstrap stylesheets
+@import "../../node_modules/bootstrap/scss/variables";
+@import "../../node_modules/bootstrap/scss/mixins";
+
+$breakpoint: md;
+
+.letter {
+  font-size: calc(1rem + 0.5vw);
+}
+
+@include media-breakpoint-up(xs) {
+  .letterBox {
+    width: calc(0.1rem + 5vw);
+    height: calc(0.1rem + 5vw);
+    // $spacer refers to 1rem in Bootstrap variables
+    margin-bottom: calc($spacer * 0.5 - 1%);
+    margin-right: calc($spacer * 0.5 - 1%);
+  }
+}
+
+@include media-breakpoint-up($breakpoint) {
+
+  /* AllGuesses.js */
+  .letterBox {
+    width: calc(0.1rem + 3.5vw);
+    height: calc(0.1rem + 3.5vw);
+    // $spacer refers to 1rem in Bootstrap variables
+    margin-bottom: calc($spacer * 0.5 - 1%);
+    margin-right: calc($spacer * 0.5 - 1%);
+  }
+
+  /* Controls.js */
+  .control-text {
+    font-size: calc(0.5rem + 1vw);
+  }
+}

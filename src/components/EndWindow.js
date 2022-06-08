@@ -8,7 +8,7 @@ const EndWindow = ({ endStatus, closeHandle, correctWord, numWins, numLosses }) 
 
   return (
     <Alert 
-      className='position-absolute top-50 start-50 pe-auto' 
+      className='position-fixed top-50 start-50 pe-auto' 
       style={{transform: 'translate(-50%, -50%)', WebkitTransform: 'translate(-50%, -50%)'}}
     >
       <div className='d-flex flex-row-reverse mb-2'>
