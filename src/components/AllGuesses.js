@@ -21,7 +21,7 @@ const WordGuess = ({ letters, results }) => {
 const Letter = ({ letter, result }) => {
   let bgClass
   const bootstrapStyle = {
-    letterBox: "d-flex align-items-center justify-content-center rounded border border-primary",
+    letterBox: "d-flex align-items-center me-2 mb-2 justify-content-center rounded border border-primary",
     letter: 'text-white text-center mb-0'
   }
 

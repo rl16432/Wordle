@@ -11,16 +11,19 @@
 @import "../../node_modules/bootstrap/scss/variables";
 @import "../../node_modules/bootstrap/scss/mixins";
 
+// Breakpoint for small screens
 $breakpoint: md;
 
 .letter {
-  font-size: calc(1rem + 0.5vw);
+  font-size: 2rem; // calc(1rem + 0.5vw);
 }
 
 @include media-breakpoint-up(xs) {
+  
+  /* AllGuesses.js -> Letter */
   .letterBox {
-    width: calc(0.1rem + 5vw);
-    height: calc(0.1rem + 5vw);
+    width: calc(2.5rem + 5vw); // calc(0.1rem + 5vw);
+    height: calc(2.5rem + 5vw); // calc(0.1rem + 5vw);
     // $spacer refers to 1rem in Bootstrap variables
     margin-bottom: calc($spacer * 0.5 - 1%);
     margin-right: calc($spacer * 0.5 - 1%);
@@ -29,10 +32,10 @@ $breakpoint: md;
 
 @include media-breakpoint-up($breakpoint) {
 
-  /* AllGuesses.js */
+  /* AllGuesses.js -> Letter */
   .letterBox {
-    width: calc(0.1rem + 3.5vw);
-    height: calc(0.1rem + 3.5vw);
+    width: 4.0rem; // calc(0.1rem + 3.5vw);
+    height: 4.0rem; // calc(0.1rem + 3.5vw);
     // $spacer refers to 1rem in Bootstrap variables
     margin-bottom: calc($spacer * 0.5 - 1%);
     margin-right: calc($spacer * 0.5 - 1%);

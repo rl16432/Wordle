@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
 import wordCorpus from './words'
-import { GameAlert, Controls, AllGuesses, Keyboard, EndWindow } from './components/index'
-import { Alert, Badge, Button, Col, Container, Navbar, Row } from 'react-bootstrap'
+import { GameAlert, ControlSet, OffcanvasControls, AllGuesses, Board, Keyboard, EndWindow } from './components/index'
+import { Badge, Button, Col, Container, Navbar, Row } from 'react-bootstrap'
+
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap-icons/font/bootstrap-icons.css'
-import Board from './components/Board'
+import './App.scss'
 
 const App = () => {
 
@@ -145,7 +146,7 @@ const App = () => {
   /**
    * When the Enter button is pressed and a guess is submitted
    * 
-   * @param {*} word The word that the user submits as part of guess
+   * @param word The word that the user submits as part of guess
    * @returns The results of the user's guess (Yellow/Green/Black)
    */
   const submitGuess = (word) => {
@@ -313,12 +314,29 @@ const App = () => {
       {/* Invalid word alert */}
       <GameAlert alertMessage={alertMessage} />
 
-      {/* Shrunk controls */}
+      {/* Shrunk controls
       <Container fluid className={`sticky-top d-${breakpoint}-none bg-dark border-bottom border-primary`}>
         <Button variant="outline-primary" className='d-inline-block my-2'>
           <h1 className='mb-0'><i className="bi bi-list"></i></h1>
         </Button>
-      </Container>
+      </Container> */}
+
+      {/* Shrunk controls */}
+
+
+      <OffcanvasControls
+        breakpoint={breakpoint}
+        texts={['Number of Guesses', 'Word Length']}
+        values={[numGuesses, wordLength]}
+        minValues={[minGuesses, minLength]}
+        maxValues={[maxGuesses, maxLength]}
+        enabled={controlsToggle}
+        onClickUps={[handleGuessChange(1), handleLengthChange(1)]}
+        onClickDowns={[handleGuessChange(-1), handleLengthChange(-1)]}
+        startState={startState}
+        clickStart={clickStart}
+        className="bg-dark mb-3 d-md-none"
+      />
 
       <EndWindow
         endStatus={endState}
@@ -331,33 +349,24 @@ const App = () => {
       {/* pe-none disables interactions when game is ended */}
       <Container fluid className={`bg-dark ${endState !== null ? ' pe-none' : ''}`}>
 
-        <Row className="pt-5 h-100 align-items-center">
+        <Row className=" h-100 align-items-center">
           <Col className={`col-${breakpoint}-3 d-${breakpoint}-flex d-none flex-column justify-content-center align-items-center fixed-top vh-100`}>
-            <Controls
-              text='Number of guesses'
-              value={numGuesses}
-              minValue={minGuesses}
-              maxValue={maxGuesses}
+            <ControlSet
+              texts={['Number of Guesses', 'Word Length']}
+              values={[numGuesses, wordLength]}
+              minValues={[minGuesses, minLength]}
+              maxValues={[maxGuesses, maxLength]}
               enabled={controlsToggle}
-              onClickUp={handleGuessChange(1)}
-              onClickDown={handleGuessChange(-1)}
-            />
-            <Controls
-              text='Word length'
-              value={wordLength}
-              minValue={minLength}
-              maxValue={maxLength}
-              enabled={controlsToggle}
-              onClickUp={handleLengthChange(1)}
-              onClickDown={handleLengthChange(-1)}
+              onClickUps={[handleGuessChange(1), handleLengthChange(1)]}
+              onClickDowns={[handleGuessChange(-1), handleLengthChange(-1)]}
             />
             <div className='d-inline-block'>
               <Button size='lg' variant='primary' disabled={startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
-              {/* <Button size='lg' variant='danger'>Retry</Button> */}
             </div>
           </Col>
           <Col xs={{ span: 10, offset: 1 }} className={`col-${breakpoint}-6 offset-${breakpoint}-3`}>
-            <Board wordLength={wordLength} words={words} allResults={results} />
+            <AllGuesses wordLength={wordLength} words={words} results={results} className={`mt-${breakpoint}-5 mb-3`} />
+            {/* <Board wordLength={wordLength} words={words} allResults={results} className={`mt-${breakpoint}-5`}/> */}
             <Keyboard keyboardStates={keyboardStates.current} />
           </Col>
           <Col

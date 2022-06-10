@@ -5,7 +5,7 @@ import AllGuesses  from "./AllGuesses"
 const Board = ({ wordLength, words, allResults, numBoards, className }) => {
   const breakpoint = "md"
   return (
-    <>
+    <div className={className}>
       <Row className="mb-4">
         <Col className={`col-${breakpoint}-6 px-2`}>
           <AllGuesses wordLength={wordLength} words={words} results={allResults} />
@@ -22,7 +22,7 @@ const Board = ({ wordLength, words, allResults, numBoards, className }) => {
           <AllGuesses wordLength={wordLength} words={words} results={allResults} />
         </Col>
       </Row>
-    </>
+    </div>
   )
 }
 
