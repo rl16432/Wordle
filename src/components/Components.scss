@@ -12,37 +12,76 @@
 @import "../../node_modules/bootstrap/scss/mixins";
 
 // Breakpoint for small screens
-$breakpoint: md;
+$breakpoint: lg;
 
-.letter {
-  font-size: 2rem; // calc(1rem + 0.5vw);
+@mixin letter-box-size($length) {
+  width: $length;
+  height: $length;
+  // $spacer refers to 1rem in Bootstrap variables
+  margin-bottom: calc($spacer * 0.5 - 1%);
+  margin-right: calc($spacer * 0.5 - 1%);
+
+}
+
+.letter-text- {
+  &1 {
+    font-size: 2rem;
+  }
+  &2 {
+    font-size: calc(1rem + 0.5vw);
+  }
 }
 
 @include media-breakpoint-up(xs) {
-  
+
   /* AllGuesses.js -> Letter */
-  .letterBox {
-    width: calc(2.5rem + 5vw); // calc(0.1rem + 5vw);
-    height: calc(2.5rem + 5vw); // calc(0.1rem + 5vw);
-    // $spacer refers to 1rem in Bootstrap variables
-    margin-bottom: calc($spacer * 0.5 - 1%);
-    margin-right: calc($spacer * 0.5 - 1%);
+  .letter-box- {
+    &1 {
+      @include letter-box-size(calc(2.5rem + 5vw));
+    }
+  
+    &2 {
+      @include letter-box-size(calc(0.1rem + 5vw));
+    }
+  }
+
+  /* Keyboard.js */
+  .letter-key {
+    width: 1.6rem;
+  }
+
+  .enter-key {
+    width: 3rem;
+  }
+  
+  .backspace-key {
+    width: 3rem;
   }
 }
 
 @include media-breakpoint-up($breakpoint) {
-
   /* AllGuesses.js -> Letter */
-  .letterBox {
-    width: 4.0rem; // calc(0.1rem + 3.5vw);
-    height: 4.0rem; // calc(0.1rem + 3.5vw);
-    // $spacer refers to 1rem in Bootstrap variables
-    margin-bottom: calc($spacer * 0.5 - 1%);
-    margin-right: calc($spacer * 0.5 - 1%);
+  .letter-box- {
+    &1 {
+      @include letter-box-size(4.0rem);
+    }
+  
+    &2 {
+      @include letter-box-size(calc(0.1rem + 3.5vw));
+    }
   }
 
   /* Controls.js */
   .control-text {
     font-size: calc(0.5rem + 1vw);
   }
+}
+
+#offcanvas-close>svg {
+  color: white !important;
+  transition: color 0.2s ease-in-out ;
+}
+
+#offcanvas-close>svg:hover {
+  color: $secondary !important;
 }

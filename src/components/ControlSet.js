@@ -11,7 +11,7 @@ import Controls from "./Controls"
  * @param enabled A boolean value to indicate if the controls are enabled
  * @param onClickUps An array of event handlers, when the up button is clicked for each control
  * @param onClickDowns An array of event handlers, when the down button is clicked for each control
- * @returns Set of controls component
+ * @returns Set of Controls component
  */
 const ControlSet = ({ texts, values, minValues, maxValues, enabled, onClickUps, onClickDowns, className }) => {
   return (

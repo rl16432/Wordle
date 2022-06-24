@@ -7,6 +7,7 @@ const Controls = ({ text, value, minValue, maxValue, enabled, onClickUp, onClick
     controlText: 'text-white d-inline-block mx-3',
     controlsGroup: "d-inline-flex",
   }
+  
   return (
     <div className={`${bootstrapStyle.container}`} >
       <h4 className={`${bootstrapStyle.controlText} control-text`}>

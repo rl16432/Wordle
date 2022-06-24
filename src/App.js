@@ -18,24 +18,43 @@ const App = () => {
 
   // Time which alert is displayed on screen (ms)
   const alertTime = 2000
-  let alertCounter = 0;
+  let alertCounter = 0
 
   // Parameters for game controls (min/max word length and min/max number of guesses) 
   const minGuesses = 3
   const maxGuesses = Infinity
   const minLength = 3
   const maxLength = 10
+  const minBoards = 1
+  const maxBoards = 8
+
   // Breakpoint for the controls to be shrunk
-  const breakpoint = "md"
+  const breakpoint = "lg"
 
   // Current number of guesses
   const [numGuesses, setNumGuesses] = useState(6)
   // Current word length
   const [wordLength, setWordLength] = useState(5)
+  // Number of boards
+  const [numBoards, setNumBoards] = useState(1)
   // Current words displayed on screen (2D array [wordLength, numGuesses])
-  const [words, setWords] = useState(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
-  // Results for the letters typed (2D array [wordLength, numGuesses])
-  const [results, setResults] = useState(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
+  const [words, setWords] = useState(
+    Array.apply(null, Array(numGuesses)).map(
+      val =>
+        ' '.repeat(wordLength).split(''))
+  )
+
+  // Results for the letters typed (3D array [wordLength, numGuesses, numBoards])
+  const [results, setResults] = useState(
+    Array.apply(null, Array(numBoards))
+      .map(val =>
+        Array.apply(null, Array(numGuesses))
+          .map(val =>
+            Array.apply(null, Array(wordLength))
+              .map(val => resultKeys.NONE)
+          )
+      )
+  )
   // Displayed alert message
   const [alertMessage, setAlertMessage] = useState(null)
   // Toggle ability to change numGuesses and wordLength
@@ -64,8 +83,9 @@ const App = () => {
       })))
   )
 
-  // Current correct word
-  const correctWord = useRef()
+  // Current correct word(s)
+  const correctWords = useRef(Array.apply(null, Array(wordLength)))
+
   // Number to track the current guess the user is on
   let currentGuess
   // Number representing current position in 2D array
@@ -74,6 +94,10 @@ const App = () => {
   let availableWords
   // Whether end of word has been reached when user types
   let endOfWord
+  // Array to show whether the correct word has been reached in each board
+  let isWordCorrect
+  // Array to show how many guesses it took for a particular word
+  const wordGuessedOn = useRef(Array.apply(null, Array(numBoards)))
 
   // Display alert message 
   const displayAlert = (newAlert, timeout) => {
@@ -108,16 +132,25 @@ const App = () => {
   /** 
    * Reset the board when new game started
    * 
-   * @param {*} numGuesses Specify the number of guesses the board should have
-   * @param {*} wordLength Specify the length of the words in the game
+   * @param numBoards Specify the number of boards the game should have
+   * @param numGuesses Specify the number of guesses the board should have
+   * @param wordLength Specify the length of the words in the game
    */
-  const resetBoard = (numGuesses, wordLength) => {
+  const resetBoard = (numBoards, numGuesses, wordLength) => {
     if (numGuesses !== null)
       setWords(Array.apply(null, Array(numGuesses)).map(val => ' '.repeat(wordLength).split('')))
     if (wordLength !== null)
-      setResults(Array.apply(null, Array(numGuesses)).map(val => Array.apply(null, Array(wordLength)).map(val => resultKeys.NONE)))
+      setResults(
+        Array.apply(null, Array(numBoards))
+          .map(val =>
+            Array.apply(null, Array(numGuesses))
+              .map(val =>
+                Array.apply(null, Array(wordLength))
+                  .map(val => resultKeys.NONE)
+              )
+          )
+      )
   }
-
 
   /**
    * Reset game state when the user wins
@@ -147,10 +180,11 @@ const App = () => {
    * When the Enter button is pressed and a guess is submitted
    * 
    * @param word The word that the user submits as part of guess
+   * @param correctWord The correct word to compare against
    * @returns The results of the user's guess (Yellow/Green/Black)
    */
-  const submitGuess = (word) => {
-    console.log('correct', correctWord.current)
+  const submitGuess = (word, correctWord) => {
+    console.log('correct', correctWords.current)
 
     const lowerCaseWord = word.toLowerCase()
     // Check if user's word is real
@@ -158,7 +192,7 @@ const App = () => {
       // Store results/colors to indicate the results of the user's word
       let newResult = []
       // Split into array of characters
-      const correctWordSplit = correctWord.current.split('')
+      const correctWordSplit = correctWord.split('')
       const userWordSplit = lowerCaseWord.split('')
       let userWordTemp = userWordSplit
 
@@ -211,30 +245,50 @@ const App = () => {
   /**
    * Handles the response when the Enter button is pressed
    * 
-   * @param {*} words The 2D array which contains the list of user inputted words 
-   * @param {*} row The row which contains the most recent word the user is attempting to 
+   * @param words The 3D array which contains the list of user inputted words 
+   * @param row The row after the row which contains the most recent word the user is attempting to submit
    */
   const onEnterPress = (words, row) => {
-    const outcome = submitGuess(words[row - 1].join(''))
-    console.log(currentGuess)
-    if (outcome !== null) {
-      const tempResults = resultsRef.current.map((result, index) => index === row - 1 ? outcome : result)
-      // Update state for results
-      setResults(tempResults.map(result => [...result]))
-      // New word is reached
-      endOfWord = false
-      currentGuess++
-      // Create new 2D array for results
-      if (outcome.every(val => val === resultKeys.SUCCESS)) {
-        onWin()
+    // 3D array of new results
+    let allResults = []
+
+    for (let idx = 0; idx < correctWords.current.length; idx++) {
+      const outcome = submitGuess(words[row - 1].join(''), correctWords.current[idx])
+
+      // Don't run the submit if the word has already been correctly identified
+      if (isWordCorrect[idx] !== true) {
+        if (outcome === null) {
+          displayAlert(`Word '${words[row - 1].join('')}' does not exist.`, alertTime)
+          return
+        }
+        else {
+          const tempResults = resultsRef.current[idx].map((result, index) => index === row - 1 ? outcome : result)
+
+          allResults.push(tempResults)
+
+          // Create new 2D array for results
+          if (outcome.every(val => val === resultKeys.SUCCESS)) {
+            isWordCorrect[idx] = true
+            wordGuessedOn.current[idx] = currentGuess
+            // Check if all words have been identified
+            if (isWordCorrect.every(val => val === true)) {
+              onWin()
+            }
+          }
+          else if (currentGuess === numGuesses) {
+            onLoss()
+          }
+        }
       }
-      else if (currentGuess === numGuesses) {
-        onLoss()
+      else {
+        allResults.push(resultsRef.current[idx])
       }
     }
-    else {
-      displayAlert(`Word '${words[row - 1].join('')}' does not exist.`, alertTime)
-    }
+    // New word is reached
+    endOfWord = false
+    currentGuess++
+    // Update state for results
+    setResults(allResults) //.map(result => [...result]))
   }
 
   const onLetterPress = (words, key, row, col, wordLength) => {
@@ -249,7 +303,7 @@ const App = () => {
   }
 
   const onBackspacePress = (words, col) => {
-
+    // 
     if (col === 0) {
       endOfWord = false
     }
@@ -260,7 +314,8 @@ const App = () => {
   }
 
   const onKeyDown = (event) => {
-
+    console.log('currpos', currentPosition)
+    console.log('currgue', currentGuess)
     const key = event.key
     const row = Math.floor(currentPosition / wordLength)
     const col = currentPosition % wordLength
@@ -273,30 +328,62 @@ const App = () => {
       onLetterPress(wordsRef.current, key, row, col, wordLength)
     }
     else if (key === 'Backspace' && currentPosition > currentGuess * wordLength) {
+      console.log('gu')
       onBackspacePress(wordsRef.current, col)
     }
   }
 
+  /**
+   * onClick event handler for changing the number of guesses
+   * 
+   * @param changeValue The amount of which to change by 
+   */
   const handleGuessChange = (changeValue) => (event) => {
     const newNumGuesses = numGuesses + changeValue
     setNumGuesses(newNumGuesses)
-    resetBoard(newNumGuesses, wordLength)
+    resetBoard(numBoards, newNumGuesses, wordLength)
   }
 
+  /**
+   * onClick event handler for changing the word length
+   * 
+   * @param changeValue The amount of which to change by 
+   */
   const handleLengthChange = (changeValue) => (event) => {
     const newWordLength = wordLength + changeValue
     setWordLength(newWordLength)
-    resetBoard(numGuesses, newWordLength)
+    resetBoard(numBoards, numGuesses, newWordLength)
   }
 
+  /**
+   * onClick event handler for changing the number of boards
+   * 
+   * @param changeValue The amount of which to change by 
+   */
+  const handleBoardsChange = (changeValue) => (event) => {
+    const newNumBoards = numBoards + changeValue
+    setNumBoards(newNumBoards)
+    resetBoard(newNumBoards, numGuesses, wordLength)
+  }
+
+  /**
+   * onClick event handler for the Start button
+   * 
+   * @param event Parameter to signify the click event 
+   */
   const clickStart = (event) => {
     if (startState === false) {
-      resetBoard(numGuesses, wordLength)
+      resetBoard(numBoards, numGuesses, wordLength)
 
       availableWords = wordCorpus.filter(word => word.length === wordLength)
-      correctWord.current = availableWords[Math.floor(Math.random() * availableWords.length)]
+      // Get new list of correct words
+      correctWords.current = Array.apply(null, Array(numBoards)).map(() => availableWords[Math.floor(Math.random() * availableWords.length)])
       currentPosition = 0
       currentGuess = 0
+
+      // Reset the isWordCorrect and wordGuessedOn.current arrays
+      isWordCorrect = Array.apply(null, Array(numBoards)).map(() => false)
+      wordGuessedOn.current = Array.apply(null, Array(numBoards))
 
       keyboardStates.current = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].map(row => row.split('')).map(row => row.map(key => ({ display: key, state: resultKeys.NONE })))
 
@@ -309,7 +396,6 @@ const App = () => {
   }
 
   return (
-
     <>
       {/* Invalid word alert */}
       <GameAlert alertMessage={alertMessage} />
@@ -323,25 +409,24 @@ const App = () => {
 
       {/* Shrunk controls */}
 
-
       <OffcanvasControls
         breakpoint={breakpoint}
-        texts={['Number of Guesses', 'Word Length']}
-        values={[numGuesses, wordLength]}
-        minValues={[minGuesses, minLength]}
-        maxValues={[maxGuesses, maxLength]}
+        texts={['Number of Guesses', 'Word Length', 'Number of Boards']}
+        values={[numGuesses, wordLength, numBoards]}
+        minValues={[minGuesses, minLength, minBoards]}
+        maxValues={[maxGuesses, maxLength, maxBoards]}
         enabled={controlsToggle}
-        onClickUps={[handleGuessChange(1), handleLengthChange(1)]}
-        onClickDowns={[handleGuessChange(-1), handleLengthChange(-1)]}
+        onClickUps={[handleGuessChange(1), handleLengthChange(1), handleBoardsChange(1)]}
+        onClickDowns={[handleGuessChange(-1), handleLengthChange(-1), handleBoardsChange(-1)]}
         startState={startState}
         clickStart={clickStart}
-        className="bg-dark mb-3 d-md-none"
+        className={`bg-dark mb-3 d-${breakpoint}-none`}
       />
 
       <EndWindow
         endStatus={endState}
         closeHandle={() => { setEndState(null) }}
-        correctWord={correctWord.current}
+        correctWord={correctWords.current[0]}
         numWins={numWins}
         numLosses={numLosses}
       />
@@ -352,22 +437,29 @@ const App = () => {
         <Row className=" h-100 align-items-center">
           <Col className={`col-${breakpoint}-3 d-${breakpoint}-flex d-none flex-column justify-content-center align-items-center fixed-top vh-100`}>
             <ControlSet
-              texts={['Number of Guesses', 'Word Length']}
-              values={[numGuesses, wordLength]}
-              minValues={[minGuesses, minLength]}
-              maxValues={[maxGuesses, maxLength]}
+              texts={['Number of Guesses', 'Word Length', 'Number of Boards']}
+              values={[numGuesses, wordLength, numBoards]}
+              minValues={[minGuesses, minLength, minBoards]}
+              maxValues={[maxGuesses, maxLength, maxBoards]}
               enabled={controlsToggle}
-              onClickUps={[handleGuessChange(1), handleLengthChange(1)]}
-              onClickDowns={[handleGuessChange(-1), handleLengthChange(-1)]}
+              onClickUps={[handleGuessChange(1), handleLengthChange(1), handleBoardsChange(1)]}
+              onClickDowns={[handleGuessChange(-1), handleLengthChange(-1), handleBoardsChange(-1)]}
             />
             <div className='d-inline-block'>
               <Button size='lg' variant='primary' disabled={startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
             </div>
           </Col>
           <Col xs={{ span: 10, offset: 1 }} className={`col-${breakpoint}-6 offset-${breakpoint}-3`}>
-            <AllGuesses wordLength={wordLength} words={words} results={results} className={`mt-${breakpoint}-5 mb-3`} />
-            {/* <Board wordLength={wordLength} words={words} allResults={results} className={`mt-${breakpoint}-5`}/> */}
-            <Keyboard keyboardStates={keyboardStates.current} />
+            {/* <AllGuesses wordLength={wordLength} words={words} results={results} className={`mt-${breakpoint}-5 mb-3`} /> */}
+            <Board
+              wordLength={wordLength}
+              words={words}
+              wordGuessedOn={wordGuessedOn.current}
+              allResults={results}
+              numBoards={numBoards}
+              className={`mt-${breakpoint}-5`}
+            />
+            <Keyboard keyboardStates={keyboardStates.current} className={`col-12 offset-1 col-${breakpoint}-4 offset-${breakpoint}-4 pt-3 bg-dark mx-auto`} />
           </Col>
           <Col
             className={`col-${breakpoint}-3 offset-${breakpoint}-9 d-${breakpoint}-flex d-none flex-column justify-content-center align-items-center fixed-top text-white`}
@@ -377,7 +469,6 @@ const App = () => {
             <h4>Losses: <Badge>{numLosses}</Badge></h4>
           </Col>
         </Row>
-
       </Container>
     </>
   )
