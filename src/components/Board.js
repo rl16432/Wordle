@@ -8,11 +8,11 @@ const Board = ({ wordLength, words, wordGuessedOn, allResults, numBoards, classN
 
   if (true) { //words.length <= 3) {
     return (
-      <div className={className}>
+      <div className={`board ${className}`}>
         {
           allResults.map(
             (results, resultsIdx) => (
-              <Row key={resultsIdx} className="mb-4">
+              <Row key={resultsIdx} className="mb-3">
                 {/* Stacks the boards when passed the breakpoint */}
                 <Col className={`col-${breakpoint}-12 px-2`}>
                   <AllGuesses
@@ -21,7 +21,7 @@ const Board = ({ wordLength, words, wordGuessedOn, allResults, numBoards, classN
                     words={
                       words.map((word, wordIdx) =>
                         // If the word has already been identified, then don't render the rest of the guesses in that board
-                        wordGuessedOn[resultsIdx] === undefined || wordIdx <= wordGuessedOn[resultsIdx]
+                        wordGuessedOn[resultsIdx] === undefined || wordIdx <= wordGuessedOn[resultsIdx] - 1
                           ? word
                           : ' '.repeat(wordLength).split('')
                       )

@@ -69,4 +69,15 @@ html {
   @include menu-icon($toggle-menu-icon-hover-color);
 }
 
+.board-parent {
+  overflow: auto;
+}
+
+@include media-breakpoint-up(lg) {
+  .board-parent {
+    overflow-y: scroll;
+    margin-left: 25.7%;
+  }
+}
+
 // transform .3s ease-in-out

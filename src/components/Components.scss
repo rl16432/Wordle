@@ -1,7 +1,7 @@
 /* 
   COMBINED CSS FOR ALL REACT COMPONENTS
 */
-
+@use "sass:map";
 // 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
 @import "../../node_modules/bootstrap/scss/functions";
 
@@ -18,9 +18,8 @@ $breakpoint: lg;
   width: $length;
   height: $length;
   // $spacer refers to 1rem in Bootstrap variables
-  margin-bottom: calc($spacer * 0.5 - 1%);
-  margin-right: calc($spacer * 0.5 - 1%);
-
+  margin-bottom: calc(map-get($spacers, 2) - .5%); 
+  margin-right: calc(map-get($spacers, 2) - .5%);
 }
 
 .letter-text- {
@@ -48,6 +47,8 @@ $breakpoint: lg;
   /* Keyboard.js */
   .letter-key {
     width: 1.6rem;
+    font-size: $font-size-base !important;
+    line-height: $line-height-base !important;
   }
 
   .enter-key {
@@ -56,6 +57,14 @@ $breakpoint: lg;
   
   .backspace-key {
     width: 3rem;
+  }
+
+  /* Board.js */
+  .board {
+    height: calc(90vh - 41.6px * 3 - map-get($spacers, 3) * (3 + 1) - $spacer);
+    
+    // root - key margins - key padding - line height - font size
+    // height: calc(100vh - $spacer * 3 - map-get($spacers, 2) * 2 * 6 - $font-size-base * $line-height-base * 2 - $font-size-base) !important;
   }
 }
 
@@ -75,13 +84,23 @@ $breakpoint: lg;
   .control-text {
     font-size: calc(0.5rem + 1vw);
   }
+
+  /* Board.js */
+  .board {
+    height: calc(94vh - 41.6px * 3 - map-get($spacers, 3) * (3 + 1) - $spacer);
+    
+    // root - key margins - key padding - line height - font size
+    // height: calc(100vh - $spacer * 3 - map-get($spacers, 2) * 2 * 6 - $font-size-base * $line-height-base * 2 - $font-size-base) !important;
+  }
 }
 
+/* Offcanvas.js */
 #offcanvas-close>svg {
   color: white !important;
   transition: color 0.2s ease-in-out ;
 }
 
+// Change color of close button on hover
 #offcanvas-close>svg:hover {
   color: $secondary !important;
 }

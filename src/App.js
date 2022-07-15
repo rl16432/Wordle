@@ -72,6 +72,8 @@ const App = () => {
   wordsRef.current = words
   const resultsRef = useRef({})
   resultsRef.current = results
+  // Ref used to access the board's parent element
+  const boardElemRef = useRef(null)
 
   // Array for colors on the keyboard
   const keyboardStates = useRef(
@@ -98,6 +100,10 @@ const App = () => {
   let isWordCorrect
   // Array to show how many guesses it took for a particular word
   const wordGuessedOn = useRef(Array.apply(null, Array(numBoards)))
+
+  useEffect(() => {
+    console.log("width", boardElemRef.current.offsetWidth)
+  }, [])
 
   // Display alert message 
   const displayAlert = (newAlert, timeout) => {
@@ -251,6 +257,8 @@ const App = () => {
   const onEnterPress = (words, row) => {
     // 3D array of new results
     let allResults = []
+    console.log(currentGuess)
+    console.log(wordGuessedOn)
 
     for (let idx = 0; idx < correctWords.current.length; idx++) {
       const outcome = submitGuess(words[row - 1].join(''), correctWords.current[idx])
@@ -276,6 +284,7 @@ const App = () => {
             }
           }
           else if (currentGuess === numGuesses) {
+            console.log('hi')
             onLoss()
           }
         }
@@ -303,7 +312,6 @@ const App = () => {
   }
 
   const onBackspacePress = (words, col) => {
-    // 
     if (col === 0) {
       endOfWord = false
     }
@@ -314,8 +322,8 @@ const App = () => {
   }
 
   const onKeyDown = (event) => {
-    console.log('currpos', currentPosition)
-    console.log('currgue', currentGuess)
+    // console.log('currpos', currentPosition)
+    // console.log('currgue', currentGuess)
     const key = event.key
     const row = Math.floor(currentPosition / wordLength)
     const col = currentPosition % wordLength
@@ -327,8 +335,7 @@ const App = () => {
     else if (/^[a-z]$/i.test(key) === true && (endOfWord === false || endOfWord === undefined)) {
       onLetterPress(wordsRef.current, key, row, col, wordLength)
     }
-    else if (key === 'Backspace' && currentPosition > currentGuess * wordLength) {
-      console.log('gu')
+    else if (key === 'Backspace' && currentPosition > (currentGuess - 1) * wordLength) {
       onBackspacePress(wordsRef.current, col)
     }
   }
@@ -379,7 +386,7 @@ const App = () => {
       // Get new list of correct words
       correctWords.current = Array.apply(null, Array(numBoards)).map(() => availableWords[Math.floor(Math.random() * availableWords.length)])
       currentPosition = 0
-      currentGuess = 0
+      currentGuess = 1
 
       // Reset the isWordCorrect and wordGuessedOn.current arrays
       isWordCorrect = Array.apply(null, Array(numBoards)).map(() => false)
@@ -420,13 +427,13 @@ const App = () => {
         onClickDowns={[handleGuessChange(-1), handleLengthChange(-1), handleBoardsChange(-1)]}
         startState={startState}
         clickStart={clickStart}
-        className={`bg-dark mb-3 d-${breakpoint}-none`}
+        className={`bg-dark mb-3 d-${breakpoint}-none sticky-top border-bottom border-primary`}
       />
 
       <EndWindow
         endStatus={endState}
         closeHandle={() => { setEndState(null) }}
-        correctWord={correctWords.current[0]}
+        correctWords={correctWords.current}
         numWins={numWins}
         numLosses={numLosses}
       />
@@ -449,7 +456,7 @@ const App = () => {
               <Button size='lg' variant='primary' disabled={startState === true ? true : false} onClick={clickStart}>Start</Button>{' '}
             </div>
           </Col>
-          <Col xs={{ span: 10, offset: 1 }} className={`col-${breakpoint}-6 offset-${breakpoint}-3`}>
+          <Col ref={boardElemRef} xs={{ span: 10, offset: 1 }} className={`board-parent col-${breakpoint}-6 offset-${breakpoint}-3`}>
             {/* <AllGuesses wordLength={wordLength} words={words} results={results} className={`mt-${breakpoint}-5 mb-3`} /> */}
             <Board
               wordLength={wordLength}
@@ -459,7 +466,7 @@ const App = () => {
               numBoards={numBoards}
               className={`mt-${breakpoint}-5`}
             />
-            <Keyboard keyboardStates={keyboardStates.current} className={`col-12 offset-1 col-${breakpoint}-4 offset-${breakpoint}-4 pt-3 bg-dark mx-auto`} />
+            
           </Col>
           <Col
             className={`col-${breakpoint}-3 offset-${breakpoint}-9 d-${breakpoint}-flex d-none flex-column justify-content-center align-items-center fixed-top text-white`}
@@ -469,6 +476,7 @@ const App = () => {
             <h4>Losses: <Badge>{numLosses}</Badge></h4>
           </Col>
         </Row>
+        <Keyboard keyboardStates={keyboardStates.current} className={`col-12 offset-1 col-${breakpoint}-4 offset-${breakpoint}-4 pt-3 bg-dark mx-auto`} />
       </Container>
     </>
   )
