@@ -1,0 +1,18 @@
+@use "../global";
+
+@include global.media-breakpoint-up(xs) {
+  /* Keyboard.js */
+  .letter-key {
+    width: 1.6rem;
+    font-size: global.$font-size-base !important;
+    line-height: global.$line-height-base !important;
+  }
+
+  .enter-key {
+    width: 3rem;
+  }
+
+  .backspace-key {
+    width: 3rem;
+  }
+}

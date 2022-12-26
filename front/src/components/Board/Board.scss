@@ -1,0 +1,21 @@
+@use "../global";
+
+@include global.media-breakpoint-up(xs) {
+  /* Board.js */
+  .board {
+    height: calc(90vh - 41.6px * 3 - map-get(global.$spacers, 3) * (3 + 1) - global.$spacer);
+
+    // root - key margins - key padding - line height - font size
+    // height: calc(100vh - $spacer * 3 - map-get($spacers, 2) * 2 * 6 - $font-size-base * $line-height-base * 2 - $font-size-base) !important;
+  }
+}
+
+@include global.media-breakpoint-up(global.$breakpoint) {
+  /* Board.js */
+  .board {
+    height: calc(94vh - 41.6px * 3 - map-get(global.$spacers, 3) * (3 + 1) - global.$spacer);
+
+    // root - key margins - key padding - line height - font size
+    // height: calc(100vh - $spacer * 3 - map-get($spacers, 2) * 2 * 6 - $font-size-base * $line-height-base * 2 - $font-size-base) !important;
+  }
+}

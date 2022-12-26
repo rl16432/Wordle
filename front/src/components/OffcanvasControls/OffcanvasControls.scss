@@ -1,0 +1,12 @@
+@use "../global";
+
+/* Offcanvas.js */
+#offcanvas-close>svg {
+  color: white !important;
+  transition: color 0.2s ease-in-out ;
+}
+
+// Change color of close button on hover
+#offcanvas-close>svg:hover {
+  color: global.$secondary !important;
+}
