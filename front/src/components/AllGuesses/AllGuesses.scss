@@ -20,7 +20,7 @@
 
 @include global.media-breakpoint-up(xs) {
 
-  /* AllGuesses.js -> Letter */
+  /* Letter */
   .letter-box- {
     &1 {
       @include letter-box-size(calc(2.5rem + 5vw));
@@ -33,7 +33,7 @@
 }
 
 @include global.media-breakpoint-up(global.$breakpoint) {
-  /* AllGuesses.js -> Letter */
+  /* Letter */
   .letter-box- {
     &1 {
       @include letter-box-size(4.0rem);

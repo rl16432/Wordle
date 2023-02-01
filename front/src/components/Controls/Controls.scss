@@ -1,7 +1,6 @@
 @use "../global";
 
 @include global.media-breakpoint-up(global.$breakpoint) {
-  /* Controls.js */
   .control-text {
     font-size: calc(0.5rem + 1vw);
   }

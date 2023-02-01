@@ -1,18 +1,12 @@
-import React, { useState, useEffect, useRef } from "react"
-import wordCorpus from "./words"
+import React, { useEffect, useRef, useState } from "react"
+import { Badge, Button, Col, Container, Row } from "react-bootstrap"
 import {
-  GameAlert,
-  ControlSet,
-  OffcanvasControls,
-  AllGuesses,
-  Board,
-  Keyboard,
-  EndWindow,
+  Board, ControlSet, EndWindow, GameAlert, Keyboard, OffcanvasControls
 } from "./components/index"
-import { Badge, Button, Col, Container, Navbar, Row } from "react-bootstrap"
+import wordCorpus from "./words"
 
-import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap-icons/font/bootstrap-icons.css"
+import "bootstrap/dist/css/bootstrap.min.css"
 import "./App.scss"
 
 const App = () => {
